@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/guard/ProtectedRoute';
 import { RoleGuard } from '@/components/guard/RoleGuard';
+import { AppLayout } from '@/components/layout/AppLayout';
 
 export const router = createBrowserRouter([
   // Public Routes
@@ -21,10 +22,14 @@ export const router = createBrowserRouter([
     },
   },
 
-  // Protected Routes
+  // Protected Routes wrapped with ProtectedRoute and AppLayout
   {
     path: '/',
-    element: <ProtectedRoute />,
+    element: (
+      <ProtectedRoute>
+        <AppLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
