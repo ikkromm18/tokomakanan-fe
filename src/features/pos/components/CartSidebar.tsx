@@ -17,7 +17,6 @@ import { CustomerModal } from '@/features/customers/components/CustomerModal';
 import { Button } from '@/components/ui/Button';
 import { formatRupiah } from '@/utils/currency';
 import { cn } from '@/utils/cn';
-import type { Customer } from '@/features/customers/types/customer';
 
 export interface CartSidebarProps {
   onProceedPayment: () => void;
