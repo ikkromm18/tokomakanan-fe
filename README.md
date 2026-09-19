@@ -104,8 +104,8 @@ Aplikasi telah dilengkapi dengan tombol *One-Click Preset* pada halaman login un
 | Role | Email | Password | Hak Akses Utama |
 | :--- | :--- | :--- | :--- |
 | **Superadmin** | `superadmin@tokomakanan.com` | `SuperAdmin123!` | Akses penuh, Kelola User, Laporan, HPP, Settings |
-| **Owner** | `owner@tokomakanan.com` | `OwnerPass123!` | Analitik, Laba Kotor, HPP, Produk, Kasir (Tanpa Kelola User) |
-| **Kasir (Admin)** | `kasir1@tokomakanan.com` | `KasirPass123!` | Kasir POS, Pelanggan, Struk (HPP & Laba disembunyikan ketat) |
+| **Owner** | `budi.owner@tokomakanan.com` | `Password123!` | Analitik, Laba Kotor, HPP, Produk, Kasir (Tanpa Kelola User) |
+| **Kasir (Admin)** | `kasir1@tokomakanan.com` | `Password123!` | Kasir POS, Pelanggan, Struk (HPP & Laba disembunyikan ketat) |
 
 ---
 

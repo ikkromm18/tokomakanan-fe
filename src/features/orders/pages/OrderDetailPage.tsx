@@ -529,6 +529,7 @@ export const OrderDetailPage: React.FC = () => {
           order={order}
           storeSettings={settings}
           onDone={() => setIsPrintModalOpen(false)}
+          doneLabel="Tutup"
         />
       </Modal>
 

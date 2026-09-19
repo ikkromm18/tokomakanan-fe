@@ -168,7 +168,7 @@ export const Sidebar: React.FC = () => {
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          'hidden md:block shrink-0 transition-all duration-300 z-30 sticky top-0 h-screen',
+          'no-print hidden md:block shrink-0 transition-all duration-300 z-30 sticky top-0 h-screen',
           sidebarCollapsed ? 'w-20' : 'w-64'
         )}
       >
@@ -177,7 +177,7 @@ export const Sidebar: React.FC = () => {
 
       {/* Mobile Drawer Backdrop & Sidebar */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden animate-fadeIn">
+        <div className="no-print fixed inset-0 z-50 md:hidden animate-fadeIn">
           <div
             className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => setMobileMenu(false)}

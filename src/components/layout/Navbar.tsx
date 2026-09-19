@@ -27,7 +27,7 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <header className="h-16 shrink-0 border-b border-stone-200/80 bg-white px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
+      <header className="no-print h-16 shrink-0 border-b border-stone-200/80 bg-white px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
         {/* Left: Mobile hamburger & breadcrumb */}
         <div className="flex items-center gap-3">
           <button

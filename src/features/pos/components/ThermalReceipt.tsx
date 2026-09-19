@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { Printer, MessageCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { formatRupiah } from '@/utils/currency';
 import { useUiStore } from '@/stores/uiStore';
+import { useThermalPrint } from '@/hooks/useThermalPrint';
+import { cn } from '@/utils/cn';
 import type { Order } from '@/features/orders/types/order';
 import type { StoreSetting } from '@/features/settings/types/settings';
 
@@ -10,14 +12,19 @@ export interface ThermalReceiptProps {
   order: Order;
   storeSettings?: StoreSetting | null;
   onDone?: () => void;
+  doneLabel?: string;
 }
 
 export const ThermalReceipt: React.FC<ThermalReceiptProps> = ({
   order,
   storeSettings,
   onDone,
+  doneLabel,
 }) => {
-  const { thermalWidth } = useUiStore();
+  const { thermalWidth, setThermalWidth } = useUiStore();
+  const receiptRef = useRef<HTMLDivElement>(null);
+  const { printReceipt } = useThermalPrint();
+  const [isPrinting, setIsPrinting] = useState(false);
 
   const storeName = storeSettings?.name || 'Toko Makanan';
   const storeAddress = storeSettings?.address || 'Alamat Toko Roti';
@@ -33,8 +40,17 @@ export const ThermalReceipt: React.FC<ThermalReceiptProps> = ({
   // Generate public digital invoice URL
   const publicInvoiceUrl = `${window.location.origin}/invoice/${order.invoice_token}`;
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
+    if (receiptRef.current) {
+      setIsPrinting(true);
+      try {
+        await printReceipt(receiptRef.current, `Struk_${order.invoice_no}`);
+      } finally {
+        setIsPrinting(false);
+      }
+    } else {
+      window.print();
+    }
   };
 
   const getWhatsAppShareUrl = (): string => {
@@ -51,14 +67,44 @@ export const ThermalReceipt: React.FC<ThermalReceiptProps> = ({
         <div className="flex items-center gap-2.5 text-emerald-800">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <div>
-            <h4 className="text-sm font-bold">Transaksi Berhasil Disimpan!</h4>
+            <h4 className="text-sm font-bold">Nota Transaksi Siap</h4>
             <p className="text-xs text-emerald-700">
               No. Invoice: <span className="font-mono font-bold">{order.invoice_no}</span>
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          {/* Quick Paper Width Toggle */}
+          <div className="flex items-center bg-white rounded-lg p-0.5 border border-emerald-300 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => setThermalWidth('80mm')}
+              className={cn(
+                'px-2 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer',
+                thermalWidth === '80mm'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-stone-600 hover:text-stone-900'
+              )}
+              title="Cetak format thermal 80mm"
+            >
+              80mm
+            </button>
+            <button
+              type="button"
+              onClick={() => setThermalWidth('58mm')}
+              className={cn(
+                'px-2 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer',
+                thermalWidth === '58mm'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-stone-600 hover:text-stone-900'
+              )}
+              title="Cetak format thermal 58mm"
+            >
+              58mm
+            </button>
+          </div>
+
           <a
             href={getWhatsAppShareUrl()}
             target="_blank"
@@ -73,6 +119,7 @@ export const ThermalReceipt: React.FC<ThermalReceiptProps> = ({
             variant="primary"
             size="sm"
             onClick={handlePrint}
+            isLoading={isPrinting}
             leftIcon={<Printer className="w-4 h-4" />}
           >
             Cetak Struk ({thermalWidth})
@@ -80,7 +127,7 @@ export const ThermalReceipt: React.FC<ThermalReceiptProps> = ({
 
           {onDone && (
             <Button variant="outline" size="sm" onClick={onDone}>
-              Transaksi Baru
+              {doneLabel || 'Selesai'}
             </Button>
           )}
         </div>
@@ -89,11 +136,13 @@ export const ThermalReceipt: React.FC<ThermalReceiptProps> = ({
       {/* Printable Thermal Receipt Paper Container */}
       <div className="flex justify-center">
         <div
-          className={
+          ref={receiptRef}
+          className={cn(
+            'thermal-receipt-paper',
             thermalWidth === '80mm'
               ? 'thermal-receipt-80mm bg-white border border-stone-200 p-4 rounded-xl shadow-xs'
               : 'thermal-receipt-58mm bg-white border border-stone-200 p-3 rounded-xl shadow-xs'
-          }
+          )}
         >
           {/* Header */}
           <div className="text-center pb-2 border-b border-dashed border-stone-400">

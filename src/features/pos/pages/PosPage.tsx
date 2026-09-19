@@ -55,6 +55,7 @@ export const PosPage: React.FC = () => {
             order={completedOrder}
             storeSettings={storeSettings}
             onDone={() => setCompletedOrder(null)}
+            doneLabel="Transaksi Baru"
           />
         )}
       </Modal>

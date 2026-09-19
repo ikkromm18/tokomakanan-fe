@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { User, Phone, MapPin } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
@@ -36,6 +37,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
   customerToEdit,
   onSuccess,
 }) => {
+  const queryClient = useQueryClient();
   const isEditMode = Boolean(customerToEdit);
 
   const {
@@ -76,6 +78,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
           phone: data.phone,
           address: data.address || undefined,
         });
+        await queryClient.invalidateQueries({ queryKey: ['customers'] });
         toast.success(`Data pelanggan "${data.name}" berhasil diperbarui`);
         onSuccess(updated);
       } else {
@@ -84,6 +87,7 @@ export const CustomerModal: React.FC<CustomerModalProps> = ({
           phone: data.phone,
           address: data.address || undefined,
         });
+        await queryClient.invalidateQueries({ queryKey: ['customers'] });
         toast.success(`Pelanggan "${data.name}" berhasil didaftarkan`);
         onSuccess(created);
       }

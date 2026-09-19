@@ -56,10 +56,10 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn print:static print:p-0 print:overflow-visible">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs transition-opacity"
+        className="no-print fixed inset-0 bg-stone-900/60 backdrop-blur-xs transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -69,13 +69,13 @@ export const Modal: React.FC<ModalProps> = ({
         role="dialog"
         aria-modal="true"
         className={cn(
-          'relative w-full rounded-2xl bg-white p-6 shadow-2xl transition-all z-10 my-auto border border-stone-100',
+          'relative w-full rounded-2xl bg-white p-6 shadow-2xl transition-all z-10 my-auto border border-stone-100 print:shadow-none print:border-none print:p-0 print:bg-transparent print:w-auto',
           maxWidths[maxWidth]
         )}
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between pb-4 border-b border-stone-100 mb-4">
+          <div className="no-print flex items-start justify-between pb-4 border-b border-stone-100 mb-4">
             <div>
               {title && (
                 <h3 className="text-lg font-bold text-stone-900 leading-6">

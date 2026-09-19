@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ShoppingBag,
   Trash2,
-  Plus,
-  Minus,
   User,
   Calendar,
   CreditCard,
@@ -14,9 +12,12 @@ import {
 import { usePosCartStore } from '@/stores/posCartStore';
 import { customerApi } from '@/features/customers/api/customerApi';
 import { CustomerModal } from '@/features/customers/components/CustomerModal';
+import { QuantityInput } from './QuantityInput';
 import { Button } from '@/components/ui/Button';
 import { formatRupiah } from '@/utils/currency';
 import { cn } from '@/utils/cn';
+import type { PaginatedResponse } from '@/core/types/api';
+import type { Customer } from '@/features/customers/types/customer';
 
 export interface CartSidebarProps {
   onProceedPayment: () => void;
@@ -25,6 +26,8 @@ export interface CartSidebarProps {
 export const CartSidebar: React.FC<CartSidebarProps> = ({
   onProceedPayment,
 }) => {
+  const queryClient = useQueryClient();
+
   const {
     items,
     orderType,
@@ -32,6 +35,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
     pickupDate,
     notes,
     discountAmount,
+    updateQuantity,
     incrementQuantity,
     decrementQuantity,
     removeItem,
@@ -51,11 +55,23 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
 
   // Fetch active customers for quick selection
   const { data: customersData } = useQuery({
-    queryKey: ['customers-pos-list'],
+    queryKey: ['customers', 'pos-list'],
     queryFn: () => customerApi.list({ limit: 100 }),
+    staleTime: 1000 * 30,
   });
 
   const customerList = customersData?.data || [];
+
+  // Ensure if customer is set (e.g. newly created) but somehow not yet in customerList, it is always included as an option
+  const effectiveCustomerList = useMemo(() => {
+    if (!customer) return customerList;
+    const exists = customerList.some((c) => c.id === customer.id);
+    if (!exists) {
+      return [customer, ...customerList];
+    }
+    return customerList;
+  }, [customer, customerList]);
+
   const subtotal = getSubtotal();
   const totalAmount = getTotalAmount();
   const totalItems = getTotalItems();
@@ -74,7 +90,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
     if (!val) {
       setCustomer(null);
     } else {
-      const found = customerList.find((c) => c.id === Number(val));
+      const found = effectiveCustomerList.find((c) => c.id === Number(val));
       setCustomer(found || null);
     }
   };
@@ -162,7 +178,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
                 className="w-full rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs text-stone-900 focus:outline-none focus:border-amber-600 focus:ring-1 focus:ring-amber-200"
               >
                 <option value="">-- Pilih Pelanggan Terdaftar --</option>
-                {customerList.map((c) => (
+                {effectiveCustomerList.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.phone})
                   </option>
@@ -227,25 +243,12 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
 
               {/* Quantity Counter & Subtotal */}
               <div className="flex items-center justify-between pt-1">
-                <div className="flex items-center gap-1 bg-white border border-stone-200 rounded-lg p-0.5 shadow-2xs">
-                  <button
-                    type="button"
-                    onClick={() => decrementQuantity(item.cartId)}
-                    className="flex h-6 w-6 items-center justify-center rounded text-stone-600 hover:bg-stone-100 cursor-pointer"
-                  >
-                    <Minus className="w-3 h-3" />
-                  </button>
-                  <span className="w-8 text-center text-xs font-bold font-mono text-stone-900">
-                    {item.quantity}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => incrementQuantity(item.cartId)}
-                    className="flex h-6 w-6 items-center justify-center rounded text-stone-600 hover:bg-stone-100 cursor-pointer"
-                  >
-                    <Plus className="w-3 h-3" />
-                  </button>
-                </div>
+                <QuantityInput
+                  value={item.quantity}
+                  onChange={(newQty) => updateQuantity(item.cartId, newQty)}
+                  onIncrement={() => incrementQuantity(item.cartId)}
+                  onDecrement={() => decrementQuantity(item.cartId)}
+                />
 
                 <span className="text-xs font-bold font-mono text-stone-900">
                   {formatRupiah(item.unit_price * item.quantity)}
@@ -344,6 +347,40 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({
         onSuccess={(newCustomer) => {
           if (newCustomer) {
             setCustomer(newCustomer);
+            queryClient.setQueryData<PaginatedResponse<Customer>>(
+              ['customers', 'pos-list'],
+              (old) => {
+                if (!old) {
+                  return {
+                    success: true,
+                    message: 'Success',
+                    data: [newCustomer],
+                    meta: {
+                      page: 1,
+                      limit: 100,
+                      total_rows: 1,
+                      total_pages: 1,
+                    },
+                  };
+                }
+                const exists = old.data.some((c) => c.id === newCustomer.id);
+                if (exists) {
+                  return {
+                    ...old,
+                    data: old.data.map((c) => (c.id === newCustomer.id ? newCustomer : c)),
+                  };
+                }
+                return {
+                  ...old,
+                  data: [newCustomer, ...old.data],
+                  meta: {
+                    ...old.meta,
+                    total_rows: old.meta ? old.meta.total_rows + 1 : old.data.length + 1,
+                  },
+                };
+              }
+            );
+            queryClient.invalidateQueries({ queryKey: ['customers'] });
           }
         }}
       />
