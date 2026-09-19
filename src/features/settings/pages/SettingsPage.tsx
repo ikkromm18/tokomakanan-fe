@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Store, Phone, MapPin, Image, FileText, Save, Lock } from 'lucide-react';
@@ -38,7 +38,7 @@ export const SettingsPage: React.FC = () => {
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     formState: { errors, isDirty },
   } = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
@@ -80,10 +80,10 @@ export const SettingsPage: React.FC = () => {
     updateMutation.mutate(data);
   };
 
-  const previewFooter = watch('receipt_footer') || 'Terima kasih telah berbelanja!';
-  const previewName = watch('name') || 'Toko Makanan';
-  const previewAddress = watch('address') || 'Alamat Toko';
-  const previewPhone = watch('phone') || '08xxxxxxxxxx';
+  const previewFooter = useWatch({ control, name: 'receipt_footer' }) || 'Terima kasih telah berbelanja!';
+  const previewName = useWatch({ control, name: 'name' }) || 'Toko Makanan';
+  const previewAddress = useWatch({ control, name: 'address' }) || 'Alamat Toko';
+  const previewPhone = useWatch({ control, name: 'phone' }) || '08xxxxxxxxxx';
 
   if (isLoading) {
     return (
